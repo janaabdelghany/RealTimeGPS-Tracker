@@ -1,1 +1,96 @@
 # RealTimeGPS-Tracker
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ESP32 Webpage</title>
+</head>
+<body>
+  <h1>ESP32 Webpage</h1>
+
+  <form action="/message" method="post">
+    <input type="text" name="message">
+    <button type="submit">Send Message</button>
+  </form>
+
+  <script>
+    function sendMessage() {
+      var message = document.getElementById("message").value;
+      var longitude = document.getElementById("longitude").value;
+      var latitude = document.getElementById("latitude").value;
+
+      // Check to make sure that the longitude and latitude values are valid
+      if (isNaN(longitude) || isNaN(latitude)) {
+        console.log("Invalid longitude or latitude value!");
+        return;
+      }
+
+      // Create a new XMLHttpRequest object
+      var xhr = new XMLHttpRequest();
+
+      // Set the request method to POST
+      xhr.open("POST", "/message");
+
+      // Set the request headers
+      xhr.setRequestHeader("Content-Type", "application/json");
+
+      // Send the request body
+      xhr.send(JSON.stringify({
+        message: message,
+        longitude: longitude,
+        latitude: latitude
+      }));
+
+      // Handle the response
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          // Success!
+          console.log("Message sent successfully!");
+
+          // Update the map with the object's current location
+          var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [longitude, latitude],
+            zoom: 16
+          });
+
+          // Add a marker to the map
+          var marker = new mapboxgl.Marker()
+            .setLngLat([longitude, latitude])
+            .addTo(map);
+
+          // Update the marker's position when the object moves
+          setInterval(function() {
+            // Get the object's current location
+            var location = getObjectLocation();
+
+            // Update the marker's position
+            marker.setLngLat([location.longitude, location.latitude]);
+          }, 1000);
+        } else {
+          // Error!
+          console.log("Error sending message: " + xhr.status);
+        }
+      };
+    }
+
+    // Add a button to the webpage
+    var sendMessageButton = document.getElementById("sendMessageButton");
+
+    // When the button is clicked, send the message to the ESP32
+    sendMessageButton.addEventListener("click", function() {
+      sendMessage();
+    });
+
+    // Function to get the object's current location
+    function getObjectLocation() {
+      // TODO: Implement this function
+      return {
+        longitude: 0,
+        latitude: 0
+      };
+    }
+  </script>
+</body>
+</html>
